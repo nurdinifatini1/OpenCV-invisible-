@@ -30,6 +30,16 @@ def apply_cloak_effect(frame, mask, background):
     bg = cv2.bitwise_and(background, background, mask=mask)
     return cv2.add(fg, bg)
 
+def display_start_interface():
+    # Create a blank window with instructions
+    start_image = np.zeros((500, 800, 3), dtype=np.uint8)
+
+    cv2.putText(start_image, 'Invisible Cloak', (180, 150), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3, cv2.LINE_AA)
+    cv2.putText(start_image, 'Press "s" to Start', (200, 300), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+    cv2.putText(start_image, 'Press "e" to Exit', (200, 350), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+    cv2.imshow('Start Interface', start_image)
+
 def main():
     print("OpenCV version:", cv2.__version__)
 
@@ -39,6 +49,19 @@ def main():
         print("Error: Could not open camera.")
         return
 
+    display_start_interface()
+
+    # Wait for the user to press 's' to start or 'e' to exit
+    while True:
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('s'):
+            cv2.destroyWindow('Start Interface')
+            break
+        elif key == ord('e'):
+            cap.release()
+            cv2.destroyAllWindows()
+            return
+
     try:
         background = create_background(cap)
     except ValueError as e:
@@ -46,10 +69,11 @@ def main():
         cap.release()
         return
 
-    lower_blue = np.array([90, 50, 50])
-    upper_blue = np.array([130, 255, 255])
+    # Color is green
+    lower_green = np.array([35, 50, 50])
+    upper_green = np.array([85, 255, 255])
 
-    print("Starting main loop. Press 'q' to quit.")
+    print("Starting main loop. Press 'e' to quit.")
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -57,12 +81,12 @@ def main():
             time.sleep(1)
             continue
 
-        mask = create_mask(frame, lower_blue, upper_blue)
+        mask = create_mask(frame, lower_green, upper_green)
         result = apply_cloak_effect(frame, mask, background)
 
         cv2.imshow('Invisible Cloak', result)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord('e'):
             break
 
     cap.release()
